@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:teamsyncai/screens/onboardingscreen.dart';
+
+import 'onboardingscreen.dart';
 
 class completeProfile extends StatefulWidget {
   @override

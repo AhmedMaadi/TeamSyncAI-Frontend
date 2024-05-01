@@ -3,13 +3,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:teamsyncai/screens/displayprofile.dart';
-import 'package:teamsyncai/screens/otp.dart';
+import 'package:teamsyncai/screens/user/otp.dart';
 import 'package:teamsyncai/providers/GoogleSignInApi.dart';
 import 'package:teamsyncai/providers/userprovider.dart';
 import 'package:teamsyncai/model/user_model.dart';
+import 'displayprofile.dart';
 
 class register extends StatefulWidget {
   const register({Key? key}) : super(key: key);

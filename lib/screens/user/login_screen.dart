@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:teamsyncai/model/user_model.dart';
-import 'package:teamsyncai/screens/ForgetPasswordPage.dart';
-import 'package:teamsyncai/screens/home.dart';
-import 'register.dart';
+import 'package:teamsyncai/screens/user/ForgetPasswordPage.dart';
 import 'package:teamsyncai/providers/userprovider.dart';
-import 'package:http/http.dart' as http;
+import 'package:teamsyncai/screens/user/register.dart';
+
+import 'home.dart';
 
 class MyApp extends StatelessWidget {
   @override
@@ -118,7 +118,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
                                 final String email = _emailController.text;
                                 final String password = _passwordController.text;
 
-                                if (email == 'ekbel@gmail.com' && password == '1111') {
+                                if (email == 'ahmed@gmail.com' && password == '1111') {
                                   // Navigate to home page directly
                                   Navigator.pushReplacement(
                                     context,

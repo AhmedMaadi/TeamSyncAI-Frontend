@@ -11,12 +11,12 @@ class ProjectSecond extends StatefulWidget {
   final String description;
 
   const ProjectSecond({
-    Key? key,
+    key,
     required this.projectName,
     required this.startDate,
     required this.endDate,
     required this.description,
-  }) : super(key: key);
+  });
 
   @override
   _ProjectSecondState createState() => _ProjectSecondState();
@@ -35,15 +35,23 @@ class _ProjectSecondState extends State<ProjectSecond> {
     });
 
     try {
+      if (teamLeaderController.text.isEmpty ||
+          membersController.text.isEmpty ||
+          keywordsController.text.isEmpty) {
+        throw Exception("All fields must be non-empty");
+      }
+
       String teamLeader = teamLeaderController.text;
       String members = membersController.text;
       String keywords = keywordsController.text;
 
-      List<String> memberList = members.isNotEmpty ? members.split(',') : [];
+      List<String> memberList =
+      members.isNotEmpty ? members.split(',') : [];
       if (teamLeader.isNotEmpty) {
         memberList.add(teamLeader);
       }
-      List<String> keywordList = keywords.isNotEmpty ? keywords.split(',') : [];
+      List<String> keywordList =
+      keywords.isNotEmpty ? keywords.split(',') : [];
 
       DateTime startDate = widget.startDate ?? DateTime.now();
       DateTime endDate = widget.endDate ?? DateTime.now();
@@ -61,7 +69,7 @@ class _ProjectSecondState extends State<ProjectSecond> {
       Map<String, dynamic>? projectData =
       await ApiService.createProject(project);
 
-      if (projectData != null && projectData.containsKey('projectID')) {
+      if (projectData.containsKey('projectID')) {
         String projectId = projectData['projectID'];
 
         Navigator.of(context).push(
@@ -82,13 +90,30 @@ class _ProjectSecondState extends State<ProjectSecond> {
             'Project data is null or does not contain projectID field');
       }
     } catch (e) {
-      // Handle errors
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Empty Fields'),
+            content: const Text('All fields must be non-empty.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +141,7 @@ class _ProjectSecondState extends State<ProjectSecond> {
                     TextFormField(
                       controller: teamLeaderController,
                       decoration: InputDecoration(
-                        labelText: 'Enter project leader',
+                        labelText: 'Enter the email of the project leader',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -125,14 +150,14 @@ class _ProjectSecondState extends State<ProjectSecond> {
                     ),
                     const SizedBox(height: 30),
                     const Text(
-                      'Members (they must be friends)',
+                      'Members (emails)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: membersController,
                       decoration: InputDecoration(
-                        labelText: 'Enter the members',
+                        labelText: 'Enter the emails of the members',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -179,10 +204,10 @@ class _ProjectSecondState extends State<ProjectSecond> {
             ),
           ),
           if (_isLoading)
-            Center(
+            const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.orange, // Change color to orange
+                  Colors.orange,
                 ),
               ),
             ),

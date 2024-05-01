@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:teamsyncai/screens/home.dart';
 import 'package:teamsyncai/screens/screenrec/AddReclamation%20.dart';
 
 class OnboardingScreen extends StatefulWidget {

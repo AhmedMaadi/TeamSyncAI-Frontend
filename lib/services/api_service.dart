@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:teamsyncai/model/dashtask.dart';
-import 'package:teamsyncai/model/module.dart';
-import 'package:teamsyncai/model/project.dart';
+import '../model/module.dart';
+import '../model/project.dart';
+import '../model/task.dart';
+
+
 
 
 class ApiService {
@@ -13,7 +15,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseURL/getByEmail'),
-        body: jsonEncode({'email': email}), // Pass email in the request body
+        body: jsonEncode({'email': email}),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -38,8 +40,6 @@ class ApiService {
         },
         body: jsonEncode(project.toJson()),
       );
-
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final Map<String, dynamic> projectData = responseData['project'];
@@ -64,7 +64,6 @@ class ApiService {
       final response = await http.get(
         Uri.parse('$baseURL/modules/project/$projectId'),
       );
-
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);

@@ -1,42 +1,96 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:teamsyncai/screens/dashboardscreen/charts/radialP.dart';
+import 'package:flutter/material.dart';
+
+import '../../model/module.dart';
+import '../../model/task.dart';
+import '../../services/api_service.dart';
+import 'charts/radialP.dart';
 
 
+class ProjectFourth extends StatefulWidget {
+  final String? projectId;
+  final String? projectName;
 
-class ProjectFourth extends StatelessWidget {
-  const ProjectFourth();
+  const ProjectFourth({key, required this.projectId, this.projectName});
+
+  @override
+  _ProjectFourthState createState() => _ProjectFourthState();
+}
+
+class _ProjectFourthState extends State<ProjectFourth> {
+  List<Task> tasks = [];
+  List<Module> modules = [];
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchModulesAndTasks();
+  }
+
+  Future<void> fetchModulesAndTasks() async {
+    try {
+      final modules = await ApiService.fetchModules(widget.projectId ?? '');
+      final List<Task> allTasks = [];
+      for (var module in modules) {
+        final moduleTasks = await ApiService.fetchTasks(module.module_id);
+        allTasks.addAll(moduleTasks);
+      }
+      setState(() {
+        this.modules = modules;
+        tasks = allTasks;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching modules and tasks: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Project Dashboard'),
+        title: Text(
+          widget.projectName ?? '',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
         backgroundColor: const Color(0xFFE89F16),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Column(
+          child: _isLoading ? _buildLoadingWidget() : Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               _buildCompletionStatus(),
-              const SizedBox(height: 10),
-              const SizedBox(height: 10),
-              _buildCharts(),
-              const SizedBox(height: 10),
-              _buildModuleCompletionList(),
+              const SizedBox(height: 20),
+              _buildModulesProgressCards(),
+              const SizedBox(height: 20),
+              _buildTasksPieChart(tasks),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildLoadingWidget() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
   Widget _buildCompletionStatus() {
     return Card(
 
-      surfaceTintColor: Colors.white,
+      surfaceTintColor: Colors.grey,
       elevation: 4,
       shape: RoundedRectangleBorder(
         side: const BorderSide(
@@ -46,23 +100,45 @@ class ProjectFourth extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              'StuStay',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE89F16)),
+              'Project Completion Status',
+              style: TextStyle(fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFE89F16)),
             ),
             const SizedBox(height: 15),
-        const SizedBox(height: 190,child: CustomPaint(painter: RadialPainter(bgColor: Color(0xFF8D6322),lineColor: Colors.orange,percent: 60 / 100,width: 15.0,),child: Center(child: Text('60%',style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold,color: Colors.orange,),),),),),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: 190,
+              child: CustomPaint(
+                painter: RadialPainter(
+                  bgColor: const Color(0xFF8D6322),
+                  lineColor: Colors.orange,
+                  percent: _calculateProjectCompletionPercentage(),
+                  width: 15.0,
+                ),
+                child: Center(
+                  child: Text(
+                    '${_calculateProjectCompletionPercentage().toStringAsFixed(
+                        1)}%',
+                    style: const TextStyle(fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildCompletionLegend('60% done', Colors.orange),
-                const SizedBox(width: 30),
-                _buildCompletionLegend('40% not done', const Color(0xFF8D6322)),
+                _buildLegendItem(color: Colors.orange, label: 'Completed'),
+                const SizedBox(width: 20),
+                _buildLegendItem(
+                    color: const Color(0xFF8D6322), label: 'Pending'),
               ],
             ),
           ],
@@ -71,8 +147,7 @@ class ProjectFourth extends StatelessWidget {
     );
   }
 
-
-  Widget _buildCompletionLegend(String text, Color color) {
+  Widget _buildLegendItem({required Color color, required String label}) {
     return Row(
       children: [
         Container(
@@ -83,268 +158,156 @@ class ProjectFourth extends StatelessWidget {
             color: color,
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        const SizedBox(width: 4),
+        Text(label),
       ],
     );
   }
 
-  Widget _buildModuleCompletionList() {
-    return ListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildModuleCompletion('Module 1', 20, Colors.red),
-        _buildModuleCompletion('Module 2', 10, Colors.blue),
-        _buildModuleCompletion('Module 3', 15, Colors.green),
-        _buildModuleCompletion('Module 4', 25, Colors.orange),
-        _buildModuleCompletion('Module 5', 12, Colors.purple),
-        _buildModuleCompletion('Module 6', 18, Colors.yellow),
-      ],
-    );
+  double _calculateProjectCompletionPercentage() {
+    int completedTasks = tasks
+        .where((task) => task.completed)
+        .length;
+    int totalTasks = tasks.length;
+    return totalTasks == 0 ? 0 : completedTasks / totalTasks * 100;
   }
 
-  Widget _buildModuleCompletion(String title, int percentage, Color color) {
-    return Card(
-      surfaceTintColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(
-          color: Colors.grey,
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: LinearProgressIndicator(
-                value: percentage / 100,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              '$percentage%',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCharts() {
+  Widget _buildModulesProgressCards() {
+    if (modules.isEmpty) {
+      return Container();
+    }
     return Column(
-      children: [
-        _buildModuleHoursChart(),
-        const SizedBox(height: 20),
-        _buildTaskStatusChart(),
-        const SizedBox(height: 10),
-
-      ],
-    );
-  }
-
-  Widget _buildModuleHoursChart() {
-    return Card(
-      surfaceTintColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(
-          color: Colors.grey,
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Module Hours (Hours per Day)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE89F16)),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: modules.map((module) {
+        int completedTasks = tasks
+            .where((task) =>
+        task.moduleId == module.module_id && task.completed)
+            .length;
+        int totalTasks = tasks
+            .where((task) => task.moduleId == module.module_id)
+            .length;
+        double completionPercentage = totalTasks == 0 ? 0 : completedTasks /
+            totalTasks;
+        return Card(
+          surfaceTintColor: Colors.grey,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(
+              color: Colors.grey,
+              width: 1,
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 300,
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, 3),
-                        FlSpot(1, 4),
-                        FlSpot(2, 3),
-                        FlSpot(3, 5),
-                        FlSpot(4, 4),
-                        FlSpot(5, 6),
-                        FlSpot(6, 4),
-
-                      ],
-                      isCurved: true,
-                      colors: [const Color(0xFFE89F16)],
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      belowBarData: BarAreaData(show: false),
-                    ),
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, 2),
-                        FlSpot(1, 3),
-                        FlSpot(2, 2),
-                        FlSpot(3, 4),
-                        FlSpot(4, 3),
-                        FlSpot(5, 5),
-                        FlSpot(6, 3),
-
-                      ],
-                      isCurved: true,
-                      colors: [Colors.blue],
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      belowBarData: BarAreaData(show: false),
-                    ),
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, 2),
-                        FlSpot(1, 4),
-                        FlSpot(2, 1),
-                        FlSpot(3, 3),
-                        FlSpot(4, 4),
-                        FlSpot(5, 2),
-                        FlSpot(6, 5),
-
-                      ],
-                      isCurved: true,
-                      colors: [Colors.red],
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      belowBarData: BarAreaData(show: false),
-                    ),
-                  ],
-                  titlesData: FlTitlesData(
-                    leftTitles: SideTitles(showTitles: true),
-                    bottomTitles: SideTitles(showTitles: true),
-                  ),
-                ),
+            borderRadius: BorderRadius.circular(20.0),
+          ), child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                module.module_name,
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              LinearProgressIndicator(
+                value: completionPercentage,
+                backgroundColor: Colors.grey[300],
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${(completionPercentage * 100).toStringAsFixed(1)}%',
+                style: const TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange),
+              ),
+            ],
+          ),
         ),
-      ),
+        );
+      }).toList(),
     );
   }
 
-  Widget _buildTaskStatusChart() {
-    return Card(
-      surfaceTintColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(
-          color: Colors.grey,
-          width: 1,
+  Widget _buildTasksPieChart(List<Task> tasks) {
+    if (tasks.isEmpty) {
+      return Container();
+    }
+    int completedTaskCount = tasks.where((task) => task.completed).length;
+    int pendingTaskCount = tasks.length - completedTaskCount;
+
+    if (completedTaskCount > 0 && pendingTaskCount > 0) {
+      List<PieChartSectionData> pieChartData = [
+        PieChartSectionData(
+          color: Colors.green,
+          value: completedTaskCount.toDouble(),
+          title: '${((completedTaskCount / tasks.length) * 100).toStringAsFixed(1)}%',
+          radius: 100,
+          titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Task Status',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE89F16)),
-            ),
-            Stack(
-              children: [
-                Center(
-                  child: SizedBox(
-                    height: 250,
-                    width: 250,
+        PieChartSectionData(
+          color: Colors.red,
+          value: pendingTaskCount.toDouble(),
+          title: '${((pendingTaskCount / tasks.length) * 100).toStringAsFixed(1)}%',
+          radius: 100,
+          titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ];
+
+      return Card(
+        surfaceTintColor: Colors.grey,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(
+            color: Colors.grey,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Task Status',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE89F16)),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 200,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1,
                     child: PieChart(
                       PieChartData(
-                        sections: [
-                          PieChartSectionData(
-                            value: 60,
-                            color: Colors.green,
-                            title: '60%',
-                            radius: 100,
-                          ),
-                          PieChartSectionData(
-                            value: 25,
-                            color: Colors.red,
-                            title: '25%',
-                            radius: 100,
-                          ),
-                          PieChartSectionData(
-                            value: 15,
-                            color: Colors.yellow,
-                            title: '15%',
-                            radius: 100,
-                          ),
-                        ],
+                        sections: pieChartData,
                         centerSpaceRadius: 0,
                         sectionsSpace: 0,
+                        startDegreeOffset: -90,
+                        borderData: FlBorderData(show: false),
+                        pieTouchData: PieTouchData(enabled: false),
                       ),
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildLegendItem(color: Colors.green, text: 'done'),
-                      const SizedBox(width: 20),
-                      _buildLegendItem(color: Colors.red, text: 'not done'),
-                      const SizedBox(width: 20),
-                      _buildLegendItem(color: Colors.yellow, text: 'pending'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildLegendItem({required Color color, required String text}) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildLegendItem(color: Colors.green, label: 'Completed'),
+                  const SizedBox(width: 10),
+                  _buildLegendItem(color: Colors.red, label: 'Pending'),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 20),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
+      );
+    } else {
+      return const Text(
+        'No data available for task status',
+        style: TextStyle(fontSize: 16),
+      );
+    }
   }
-
 }

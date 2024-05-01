@@ -4,18 +4,21 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:teamsyncai/screens/task.dart/tasksDetails.dart';
 
-import '../../model/dashtask.dart';
+import '../../model/task.dart';
 
 final DateFormat mongoDBDateFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
-
 
 class TasksPage extends StatefulWidget {
   final String moduleId;
   final String moduleName;
+  final List<String> teamMembers;
 
-  const TasksPage({Key? key, required this.moduleId, required this.moduleName, required teamMembers})
-      : super(key: key);
+  const TasksPage({
+    Key? key,
+    required this.moduleId,
+    required this.moduleName,
+    required this.teamMembers,
+  }) : super(key: key);
 
   @override
   _TasksPageState createState() => _TasksPageState();
@@ -87,9 +90,10 @@ class _TasksPageState extends State<TasksPage> {
 
       for (var taskData in data) {
         final task = Task.fromJson(taskData);
-        if (task.date.year == today.year &&
-            task.date.month == today.month &&
-            task.date.day == today.day &&
+        if (task.endDate != null &&
+            task.endDate!.year == today.year &&
+            task.endDate!.month == today.month &&
+            task.endDate!.day == today.day &&
             !task.completed) {
           todayTasks.add(task);
         }
@@ -115,10 +119,11 @@ class _TasksPageState extends State<TasksPage> {
 
       for (var taskData in data) {
         final task = Task.fromJson(taskData);
-        if (task.date.isAfter(today) &&
-            (task.date.year != today.year ||
-                task.date.month != today.month ||
-                task.date.day != today.day) &&
+        if (task.endDate != null &&
+            task.endDate!.isAfter(today) &&
+            (task.endDate!.year != today.year ||
+                task.endDate!.month != today.month ||
+                task.endDate!.day != today.day) &&
             !task.completed) {
           upcomingTasks.add(task);
         }
@@ -179,7 +184,7 @@ class _TasksPageState extends State<TasksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.orange, // Background color of the app bar
+        backgroundColor: Colors.orange,
         title: Text(
           'Tasks for Module ${widget.moduleName}',
           style: const TextStyle(
@@ -260,7 +265,7 @@ class _TasksPageState extends State<TasksPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Completed: ${DateFormat('EEEE, h:mm a').format(task.date)}',
+                            'Completed: ${DateFormat('EEEE, h:mm a').format(task.endDate!)}',
                           ),
                         ),
                         const VerticalDivider(),
@@ -280,10 +285,13 @@ class _TasksPageState extends State<TasksPage> {
                 : FutureBuilder<List<Task>>(
               future: _showTodayTasks ? _todayTasks : _upcomingTasks,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                      child: Text('Error: ${snapshot.error}'));
                 } else {
                   final List<Task> tasks = snapshot.data!;
                   return ListView.builder(
@@ -297,7 +305,7 @@ class _TasksPageState extends State<TasksPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Due: ${DateFormat('EEEE, h:mm a').format(task.date)}',
+                                  'Due: ${DateFormat('EEEE, h:mm a').format(task.endDate!)}',
                                 ),
                               ),
                               const VerticalDivider(),
@@ -309,7 +317,8 @@ class _TasksPageState extends State<TasksPage> {
                                       builder: (context) =>
                                           TaskDetailsPage(
                                             task: task,
-                                            markAsCompleted: _markAsCompleted, members: [],
+                                            markAsCompleted: _markAsCompleted,
+                                            members: widget.teamMembers,
                                           ),
                                     ),
                                   );
@@ -331,7 +340,8 @@ class _TasksPageState extends State<TasksPage> {
                               MaterialPageRoute(
                                 builder: (context) => TaskDetailsPage(
                                   task: task,
-                                  markAsCompleted: _markAsCompleted, members: [],
+                                  markAsCompleted: _markAsCompleted,
+                                  members: widget.teamMembers,
                                 ),
                               ),
                             );

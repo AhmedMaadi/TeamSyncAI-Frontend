@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:teamsyncai/screens/completeprofile.dart';
-import 'package:teamsyncai/screens/onboardingscreen.dart';
 import 'package:http/http.dart' as http;
+
+import 'onboardingscreen.dart';
 class otp extends StatefulWidget {
   @override
   _OTPScreenState createState() => _OTPScreenState();

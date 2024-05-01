@@ -5,7 +5,10 @@ class Task {
   final String taskDescription;
   final List<String> team;
   final bool completed;
-  final DateTime date; // Added date field
+  final int? Duration;
+  final DateTime? startDate;
+  final DateTime? endDate;
+
 
   Task({
     required this.taskId,
@@ -14,7 +17,9 @@ class Task {
     required this.taskDescription,
     required this.team,
     required this.completed,
-    required this.date, // Include date in the constructor
+    this.Duration,
+    this.startDate,
+    this.endDate,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,7 +30,9 @@ class Task {
       'task_description': taskDescription,
       'team': team,
       'completed': completed,
-      'date': date.toIso8601String(), // Convert DateTime to ISO 8601 string
+      'Duration': Duration,
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
     };
   }
 
@@ -35,9 +42,12 @@ class Task {
       moduleId: json['module_id'],
       projectID: json['projectID'],
       taskDescription: json['task_description'],
-      completed: json['completed'],
       team: List<String>.from(json['team']),
-      date: DateTime.parse(json['date']), // Parse ISO 8601 string to DateTime
+      completed: json['completed'],
+      Duration: json['Duration'],
+      startDate: json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
     );
   }
+
 }

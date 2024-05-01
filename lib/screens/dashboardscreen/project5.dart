@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-
-import 'package:teamsyncai/model/dashtask.dart';
-import 'package:teamsyncai/model/module.dart';
 import 'package:teamsyncai/screens/dashboardscreen/project6.dart';
-import 'package:teamsyncai/services/api_service.dart';
+import '../../model/module.dart';
+import '../../model/task.dart';
+import '../../services/api_service.dart';
+
 
 
 class ProjectFifth extends StatefulWidget {
   final String moduleId;
   final String moduleName;
   final String projectId;
-  final List<String> teamM; // Added team field
+  final List<String> teamM;
 
 
 
-  const ProjectFifth({Key? key, required this.moduleId, required this.moduleName, required this.projectId, required this.teamM})
-      : super(key: key);
+  const ProjectFifth({key, required this.moduleId, required this.moduleName, required this.projectId, required this.teamM});
 
   @override
   State<ProjectFifth> createState() => _ProjectFifthState();
@@ -52,7 +51,6 @@ class _ProjectFifthState extends State<ProjectFifth> {
       });
     }
   }
-  // Inside the _ProjectFifthState class
   Future<void> _addDefaultTask() async {
     try {
       setState(() {
@@ -68,7 +66,6 @@ class _ProjectFifthState extends State<ProjectFifth> {
       setState(() {
         isLoading = false;
       });
-      // Handle error
     }
   }
 
@@ -81,7 +78,8 @@ class _ProjectFifthState extends State<ProjectFifth> {
         backgroundColor: const Color(0xFFE89F16),
       ),
       body: isLoading
-          ? const Center(
+          ? const Center
+        (
         child: CircularProgressIndicator(),
       )
           : SingleChildScrollView(
@@ -207,8 +205,7 @@ class _ProjectFifthState extends State<ProjectFifth> {
 
       await ApiService.updateModule(widget.moduleId, updatedModule);
 
-      // Pop all routes until reaching ProjectThird
-      Navigator.popUntil(context, ModalRoute.withName('/projectThird'));
+      Navigator.of(context).pop();
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

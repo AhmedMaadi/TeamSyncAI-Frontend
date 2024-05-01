@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-
-import 'package:teamsyncai/model/module.dart';
-import 'package:teamsyncai/screens/dashboardscreen/project4.dart';
 import 'package:teamsyncai/screens/dashboardscreen/project5.dart';
-import 'package:teamsyncai/services/api_service.dart';
-
+import '../../model/module.dart';
+import '../../services/api_service.dart';
+import '../user/home.dart';
 
 class ProjectThird extends StatefulWidget {
   final String projectId;
@@ -16,7 +14,7 @@ class ProjectThird extends StatefulWidget {
   final DateTime endDate;
 
   const ProjectThird({
-    Key? key,
+    key,
     required this.projectId,
     required this.projectName,
     required this.teamLeader,
@@ -24,7 +22,7 @@ class ProjectThird extends StatefulWidget {
     required this.keywords,
     required this.startDate,
     required this.endDate,
-  }) : super(key: key);
+  });
 
   @override
   _ProjectThirdState createState() => _ProjectThirdState();
@@ -45,6 +43,7 @@ class _ProjectThirdState extends State<ProjectThird> {
       isLoading = true;
     });
     try {
+      print('Fetching modules...');
       List<Module> fetchedModules =
       await ApiService.fetchModules(widget.projectId);
 
@@ -52,7 +51,9 @@ class _ProjectThirdState extends State<ProjectThird> {
         modules = fetchedModules;
         isLoading = false;
       });
+      print('Modules fetched successfully: $modules');
     } catch (e) {
+      print('Error fetching modules: $e');
       setState(() {
         isLoading = false;
       });
@@ -68,18 +69,21 @@ class _ProjectThirdState extends State<ProjectThird> {
       isLoading = true;
     });
     try {
-      Module newModule = await ApiService.createDefaultModule(widget.projectId);
+      print('Adding default module...');
+      Module newModule =
+      await ApiService.createDefaultModule(widget.projectId);
       setState(() {
         modules.add(newModule);
         isLoading = false;
       });
+      print('Default module added: $newModule');
     } catch (e) {
+      print('Error adding default module: $e');
       setState(() {
         isLoading = false;
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -216,10 +220,10 @@ class _ProjectThirdState extends State<ProjectThird> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ProjectFifth(
-                                  moduleId: module.module_id,
-                                  moduleName: module.module_name,
-                                  projectId: widget.projectId,
-                                  teamM: module.teamM
+                                    moduleId: module.module_id,
+                                    moduleName: module.module_name,
+                                    projectId: widget.projectId,
+                                    teamM: module.teamM
                                 ),
                               ),
                             ).then((value) {
@@ -243,7 +247,7 @@ class _ProjectThirdState extends State<ProjectThird> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProjectFourth()),
+                    MaterialPageRoute(builder: (context) =>  home(email: widget.teamLeader)),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../model/dashtask.dart';
+import '../../model/task.dart';
 
 class TaskDetailsPage extends StatefulWidget {
   final Task task;
@@ -32,7 +32,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Future<void> generateSteps() async {
     try {
       final response = await http
-          .get(Uri.parse('http://192.168.1.15:3000/task/${widget.task.taskId}'));
+          .get(
+          Uri.parse('http://192.168.1.15:3000/task/${widget.task.taskId}'));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -131,8 +132,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   Row(
                     children: [
                       Text(
-                        DateFormat('EEEE, h:mm a')
-                            .format(widget.task.date),
+                        widget.task.endDate != null
+                            ? DateFormat('EEEE, h:mm a').format(
+                            widget.task.endDate!)
+                            : 'No due date',
                         style: const TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.bold,

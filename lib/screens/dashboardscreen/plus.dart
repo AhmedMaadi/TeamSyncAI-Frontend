@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:teamsyncai/screens/dashboardscreen/project2.dart';
 
 class ProjectFirst extends StatefulWidget {
@@ -105,12 +104,50 @@ class _ProjectFirstState extends State<ProjectFirst> {
                 const SizedBox(height: 90),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProjectSecond(
-                      projectName: projectName,
-                      startDate: startDate,
-                      endDate: endDate,
-                      description: description,
-                    )));
+                    if (projectName.isEmpty || startDate == null || endDate == null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content: const Text('Please fill in all required fields.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else if (endDate!.isBefore(startDate!)) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content: const Text('End date cannot be before start date.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProjectSecond(
+                        projectName: projectName,
+                        startDate: startDate,
+                        endDate: endDate,
+                        description: description,
+                      )));
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE89F16),
@@ -164,5 +201,4 @@ class _ProjectFirstState extends State<ProjectFirst> {
       }
     });
   }
-
 }

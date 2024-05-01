@@ -1,15 +1,15 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:teamsyncai/screens/EditProfile.dart';
-import 'package:teamsyncai/screens/StillToCome%20.dart';
-import 'package:teamsyncai/screens/home.dart';
-import 'package:teamsyncai/screens/login_screen.dart';
-import 'package:teamsyncai/screens/Identification.dart';
-import 'package:teamsyncai/screens/Notifications.dart';
+import 'package:teamsyncai/screens/user/login_screen.dart';
 import 'package:teamsyncai/screens/screenrec/ReportProblem.dart';
 import 'package:teamsyncai/screens/screenrec/reports.dart';
+
+import 'EditProfile.dart';
+import 'Identification.dart';
+import 'Notifications.dart';
+import 'StillToCome .dart';
+import 'home.dart';
 
 class Profile extends StatefulWidget {
   final String email;

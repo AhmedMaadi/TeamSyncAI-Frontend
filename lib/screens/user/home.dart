@@ -1,19 +1,20 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:teamsyncai/screens/calenderscreen/calendar_screen.dart';
 import 'package:teamsyncai/screens/chatscreen/chatroom.dart';
 import 'package:teamsyncai/screens/dashboardscreen/plus.dart';
-import 'package:teamsyncai/screens/profile.dart';
 import 'package:teamsyncai/screens/task.dart/modulesList.dart';
 import 'package:teamsyncai/screens/task.dart/taskPage.dart';
 import 'package:teamsyncai/screens/task.dart/taskmain.dart';
-import '../model/dashtask.dart';
-import '../model/module.dart';
-import '../model/project.dart';
-import '../services/api_service.dart';
-import "../services/task_module_service.dart";
 import 'package:http/http.dart' as http;
+import 'package:teamsyncai/screens/user/profile.dart';
+
+import '../../model/module.dart';
+import '../../model/project.dart';
+import '../../model/task.dart';
+import '../../services/api_service.dart';
+import '../../services/task_module_service.dart';
+import '../dashboardscreen/project4.dart';
+
 
 class home extends StatefulWidget {
   final String email;
@@ -27,17 +28,17 @@ class home extends StatefulWidget {
 class _MyHomePageState extends State<home> with Task_Module_service {
   late ScrollController _scrollController;
   int _selectedIndex = 0;
-  List<Project> projects = []; // List to store fetched projects
+  List<Project> projects = [];
   late Future<List<Module>> _modulesFuture;
 
   @override
   void initState() {
     super.initState();
-    fetchProjectsByEmail(); // Call function to fetch projects
+    fetchProjectsByEmail();
     _modulesFuture = fetchModulesByEmail(widget.email);
 
-    _scrollController = ScrollController(); // Initialize ScrollController
-    _scrollController.addListener(_onScroll); // Add listener
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
   }
 
   void _onScroll() {
@@ -70,7 +71,7 @@ class _MyHomePageState extends State<home> with Task_Module_service {
   }
   Future<Map<String, dynamic>> fetchProjects() async {
     final response =
-    await http.get(Uri.parse('http://192.168.1.12:3000/projectss'));
+    await http.get(Uri.parse('http://192.168.1.15:3000/projectss'));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -120,13 +121,7 @@ class _MyHomePageState extends State<home> with Task_Module_service {
             builder: (context) => ProjectFirst(email: widget.email)),
       );
     }
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => CalendarScreen(email: widget.email)),
-      );
-    }
+
     if (index == 1) {
       Navigator.push(
         context,
@@ -147,7 +142,7 @@ class _MyHomePageState extends State<home> with Task_Module_service {
               radius: 25.0,
               backgroundImage: AssetImage('assets/images/zz.png'),
             ),
-            SizedBox(width: 8), // Add some spacing between avatar and text
+            SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -205,7 +200,7 @@ class _MyHomePageState extends State<home> with Task_Module_service {
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: SizedBox(
                         width: 250,
-                        height: 200,
+                        height: 200, // Adjust width as needed
                         child: Card(
                           elevation: 3,
                           child: Stack(
@@ -222,7 +217,7 @@ class _MyHomePageState extends State<home> with Task_Module_service {
                                       projects[i].name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -231,11 +226,17 @@ class _MyHomePageState extends State<home> with Task_Module_service {
                                       projects[i].description,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                       ),
                                     ),
                                     onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProjectFourth(projectId: projects[i].id,projectName: projects[i].name),
+                                        ),
+                                      );
                                     },
                                   ),
                                 ),

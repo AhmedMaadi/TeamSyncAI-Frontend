@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:teamsyncai/model/dashtask.dart';
-import 'package:teamsyncai/services/api_service.dart';
+
+import '../../model/task.dart';
+import '../../services/api_service.dart';
+
 
 class ProjectSixth extends StatefulWidget {
   final String taskId;
   final String initialTaskDescription;
 
-  const ProjectSixth({
-    Key? key,
-    required this.taskId,
-    required this.initialTaskDescription,
-  }) : super(key: key);
+  const ProjectSixth({key, required this.taskId, required this.initialTaskDescription,});
 
   @override
   _ProjectSixthState createState() => _ProjectSixthState();
@@ -39,7 +37,7 @@ class _ProjectSixthState extends State<ProjectSixth> {
       Task updatedTask = Task(
         taskId: widget.taskId,
         taskDescription: taskDescription,
-        moduleId: '', projectID: '', completed: false, team: [], date: DateTime.now(),
+        moduleId: '', projectID: '', completed: false, team: [],
       );
 
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teamsyncai/screens/login_screen.dart';
+import 'package:teamsyncai/screens/user/login_screen.dart';
 
 
 

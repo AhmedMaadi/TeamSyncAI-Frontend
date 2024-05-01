@@ -3,14 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teamsyncai/providers/chatroom_provider.dart';
 import 'package:teamsyncai/providers/userprovider.dart';
-import 'package:teamsyncai/screens/launch_screen.dart';
-import 'package:teamsyncai/screens/login_screen.dart';
-import 'package:teamsyncai/screens/home.dart';
-import 'package:teamsyncai/screens/register.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:device_preview/device_preview.dart'; // Import DevicePreview package
-import 'package:teamsyncai/providers/ChangeNotifierProvider.dart';
-import 'package:flutter/foundation.dart';
+import 'package:teamsyncai/screens/user/launch_screen.dart';
+import 'package:teamsyncai/screens/user/login_screen.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:teamsyncai/screens/user/register.dart'; // Import DevicePreview package
 void main() {
   runApp(
     MultiProvider(

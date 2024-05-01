@@ -6,7 +6,7 @@ import 'package:teamsyncai/model/project.dart';
 
 
 class ApiService {
-  static const String baseURL = 'http://192.168.128.154:3000';
+  static const String baseURL = 'http://192.168.1.15:3000';
 
 
   static Future<List<Project>> fetchProjects({required String email}) async {

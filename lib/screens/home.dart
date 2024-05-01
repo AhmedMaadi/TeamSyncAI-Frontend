@@ -8,9 +8,11 @@ import 'package:teamsyncai/screens/profile.dart';
 import 'package:teamsyncai/screens/task.dart/modulesList.dart';
 import 'package:teamsyncai/screens/task.dart/taskPage.dart';
 import 'package:teamsyncai/screens/task.dart/taskmain.dart';
+import '../model/dashtask.dart';
 import '../model/module.dart';
 import '../model/project.dart';
 import '../services/api_service.dart';
+import "../services/task_module_service.dart";
 import 'package:http/http.dart' as http;
 
 class home extends StatefulWidget {
@@ -22,7 +24,8 @@ class home extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<home> {
+class _MyHomePageState extends State<home> with Task_Module_service {
+  late ScrollController _scrollController;
   int _selectedIndex = 0;
   List<Project> projects = []; // List to store fetched projects
   late Future<List<Module>> _modulesFuture;
@@ -32,16 +35,34 @@ class _MyHomePageState extends State<home> {
     super.initState();
     fetchProjectsByEmail(); // Call function to fetch projects
     _modulesFuture = fetchModulesByEmail(widget.email);
+
+    _scrollController = ScrollController(); // Initialize ScrollController
+    _scrollController.addListener(_onScroll); // Add listener
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels == 0) {
+      setState(() {
+        _modulesFuture = fetchModulesByEmail(widget.email);
+        fetchProjectsByEmail();
+      });
+    }
+  }
+  Future<void> _refreshData() async {
+    setState(() {
+      fetchProjectsByEmail();
+      _modulesFuture = fetchModulesByEmail(widget.email);
+    });
   }
 
 
-  // Function to fetch projects by email
+
   void fetchProjectsByEmail() async {
     try {
       List<Project> fetchedProjects = await ApiService.fetchProjects(
-          email: widget.email); // Call fetchProjects function
+          email: widget.email);
       setState(() {
-        projects = fetchedProjects; // Update state with fetched projects
+        projects = fetchedProjects;
       });
     } catch (e) {
       print('Error fetching projects: $e');
@@ -49,34 +70,37 @@ class _MyHomePageState extends State<home> {
   }
   Future<Map<String, dynamic>> fetchProjects() async {
     final response =
-    await http.get(Uri.parse('http://192.168.128.154:3000/projectss'));
+    await http.get(Uri.parse('http://192.168.1.12:3000/projectss'));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to load projects');
     }
   }
-  Future<List<Module>> fetchModulesByEmail(String email) async {
+
+
+  Future<String> fetchProjectName(String projectId) async {
     try {
-      final response = await http.post(
-        Uri.parse('http://192.168.128.154:3000/getMByEmail'),
-        body: jsonEncode({'email': email}), // Pass email in the request body
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await http.get(Uri.parse('http://192.168.1.15:3000/project/$projectId'));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final List<Module> modules = data.map<Module>((moduledata) {
-          return Module.fromJson(moduledata);
-        }).toList();
-
-        return modules;
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['projectName'];
       } else {
-        throw Exception('Failed to load modules');
+        throw Exception('Failed to fetch project name');
       }
-    } catch (e) {
-      throw Exception('Error fetching modules: $e');
+    } catch (error) {
+      print('Error fetching project name: $error');
+      throw Exception('Failed to fetch project name');
     }
+  }
+  double calculateCompletionPercentage(List<Task> tasks) {
+    if (tasks.isEmpty) return 0;
+    int completedCount = 0;
+    for (var task in tasks) {
+      if (task.completed) completedCount++;
+    }
+    return (completedCount / tasks.length) * 100;
   }
 
   void _onItemTapped(int index) {
@@ -116,11 +140,9 @@ class _MyHomePageState extends State<home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-
             CircleAvatar(
               radius: 25.0,
               backgroundImage: AssetImage('assets/images/zz.png'),
@@ -144,158 +166,179 @@ class _MyHomePageState extends State<home> {
                 ),
               ],
             ),
-            Spacer(), // Add a spacer to push TeamSyncAi to the right
+            Spacer(),
             Text(
               'TeamSyncAi',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(width: 8), // Add some spacing between text and right edge
+            SizedBox(width: 8),
           ],
         ),
-
       ),
-      // Your body and other widgets go here
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 20),
-          Row(
-            children: [
-              SizedBox(width: 15),// Flexible space to push "Projects" slightly to the right
-              Text(
-                'Projects',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20),
+            Row(
               children: [
-                for (int i = 0; i < projects.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: SizedBox(
-                      width: 250,
-                      height: 200, // Adjust width as needed
-                      child: Card(
-                        elevation: 3,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 100,
-                              child: Container(
-                                color: Colors.orangeAccent,
-                                child: ListTile(
-                                  title: Text(
-                                    projects[i].name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                SizedBox(width: 15),
+                Text(
+                  'Projects',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (int i = 0; i < projects.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: SizedBox(
+                        width: 250,
+                        height: 200,
+                        child: Card(
+                          elevation: 3,
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 100,
+                                child: Container(
+                                  color: Colors.orangeAccent,
+                                  child: ListTile(
+                                    title: Text(
+                                      projects[i].name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    projects[i].description,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white,
+                                    subtitle: Text(
+                                      projects[i].description,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
+                                    onTap: () {
+                                    },
                                   ),
-                                  onTap: () {
-                                    // Navigate to project details or do something else
-                                  },
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              top: 100,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                color: Colors.white,
+                              Positioned(
+                                top: 100,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                SizedBox(width: 15),
+                Text(
+                  'Modules',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
+                ),
               ],
             ),
-          ),
-
-
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              SizedBox(width: 15),// Flexible space to push "Projects" slightly to the right
-              Text(
-                'Modules',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: FutureBuilder<List<Module>>(
+                future: _modulesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else {
+                    List<Module> modules = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: modules.length,
+                      itemBuilder: (context, index) {
+                        var module = modules[index];
+                        return FutureBuilder<String>(
+                          future: fetchProjectName(module.projectID),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else {
+                              String projectName = snapshot.data!;
+                              return FutureBuilder<double>(
+                                future: fetchCompletionPercentage(
+                                    module.module_id),
+                                builder: (context, completionSnapshot) {
+                                  double completionPercentage =
+                                      completionSnapshot.data ?? 0.0;
+                                  return ListTileModule(
+                                    projectTitle: projectName,
+                                    moduleTitle: module.module_name,
+                                    teamMembers: module.teamM,
+                                    profileImagePaths: const [
+                                      'assets/images/zz.png'
+                                    ],
+                                    percentage: completionPercentage,
+                                    imagePath: 'assets/images/orange.jpg',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TasksPage(
+                                            moduleId: module.module_id,
+                                            moduleName: module.module_name,
+                                            teamMembers: module.teamM,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
+                  }
+                },
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: FutureBuilder<List<Module>>(
-              future: _modulesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else {
-                  List<Module> modules = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: modules.length,
-                    itemBuilder: (context, index) {
-                      var module = modules[index];
-                      return ListTileModule(
-                        projectTitle: module.projectID,
-                        moduleTitle: module.module_name,
-                        teamMembers: module.teamM,
-                        profileImagePaths: const ['assets/images/zz.png'],
-                        percentage: 50,
-                        imagePath: 'assets/images/orange.jpg',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TasksPage(
-                                moduleId: module.module_id,
-                                moduleName: module.module_name,
-                                teamMembers: module.teamM,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                }
-              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -314,6 +357,7 @@ class _MyHomePageState extends State<home> {
   }
 }
 
+
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -328,7 +372,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
-      backgroundColor: Colors.orange, // Set background color to orange
+      backgroundColor: Colors.orange,
       items: [
         const BottomNavigationBarItem(
           icon: Icon(Icons.home),

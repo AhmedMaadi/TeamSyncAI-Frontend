@@ -5,7 +5,7 @@ class ListTileModule extends StatelessWidget {
   final String projectTitle;
   final String moduleTitle;
   final List<String> profileImagePaths;
-  final int percentage;
+  final double percentage;
   final String imagePath;
   final List<String> teamMembers;
   final VoidCallback onTap;

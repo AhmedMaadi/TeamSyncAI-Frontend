@@ -57,7 +57,7 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<List<Task>> fetchAllTasks(String moduleId) async {
     final response = await http.get(
-      Uri.parse('http://192.168.128.154:3000/tasks/modul/$moduleId'),
+      Uri.parse('http://192.168.1.15:3000/tasks/modul/$moduleId'),
     );
 
     if (response.statusCode == 200) {
@@ -78,7 +78,7 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<List<Task>> fetchTodayTasks(String moduleId) async {
     final response = await http
-        .get(Uri.parse('http://192.168.128.154:3000/tasks/modul/$moduleId'));
+        .get(Uri.parse('http://192.168.1.15:3000/tasks/modul/$moduleId'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body)['tasks'];
@@ -104,7 +104,7 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<List<Task>> fetchUpcomingTasks() async {
     final response = await http.get(
-        Uri.parse('http://192.168.128.154:3000/tasks/modul/${widget.moduleId}'));
+        Uri.parse('http://192.168.1.15:3000/tasks/modul/${widget.moduleId}'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body)['tasks'];
@@ -148,7 +148,7 @@ class _TasksPageState extends State<TasksPage> {
   void _markAsCompleted(Task task) async {
     try {
       final response = await http.put(
-        Uri.parse('http://192.168.128.154:3000/tasks/${task.taskId}/completed'),
+        Uri.parse('http://192.168.1.15:3000/tasks/${task.taskId}/completed'),
       );
 
       if (response.statusCode == 200) {

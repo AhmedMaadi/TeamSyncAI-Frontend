@@ -32,7 +32,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Future<void> generateSteps() async {
     try {
       final response = await http
-          .get(Uri.parse('http://192.168.128.154:3000/task/${widget.task.taskId}'));
+          .get(Uri.parse('http://192.168.1.15:3000/task/${widget.task.taskId}'));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
